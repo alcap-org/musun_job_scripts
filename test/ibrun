@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# ibrun should run N copies of a specified command. N is determined
+# by the number of cores in the parallel environment. Since the test
+# harness doesn't replicate the actual job submission engine, we need
+# to specify the number of runs through the NRUNS environment variable
+
+if [ -z "$NRUNS" ]; then
+  echo "Error! ibrun : \$NRUNS is not defined"
+  exit 1
+fi
+
+END=$(($NRUNS-1))
+for i in `seq 0 $END`; do
+    export PMI_ID=$i
+    ./$1 $2
+done
+exit 0
+

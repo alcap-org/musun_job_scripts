@@ -1,0 +1,11 @@
+./submitMCJob.sh -d prod_rn4_muMinus_d0 -n 12
+./submitResponseJobs.sh -d prod_rn4_muMinus_d1
+./submitResponseJobs.sh -d prod_rn4_muMinus_d0 -p 2
+./submitResponseJobs.sh -d prod_rn4_muMinus_d0
+./submitMCJob.sh -d prod_rn4_muMinus_d0 -n 12
+./submitMCJob.sh -d prod_rn4_muPlus_a0 -n 12
+./submitMCJob.sh -d prod_rn4_muPlus_a0 -n 12 -p 2
+./submitResponseJobs.sh -d prod_rn4_muPlus_a0 -p 2
+./submitMuJob.sh -d prod_rn4_muPlus_a0 -p 2 -m MC
+./submitMuJob.sh -d prod_rn4_muPlus_a0 -p 1 -m MC
+./submitMuJob.sh -d prod_rn4_muMinus_d0 -m MC

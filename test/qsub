@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo Sourcing $1
+source $1
+

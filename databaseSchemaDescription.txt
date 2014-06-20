@@ -1,0 +1,65 @@
+Database schema.
+
+Datasets are defined in jobscripts/lists/datasets
+
+One table called datasets
+  Has two colums.
+  Each row is for a dataset.
+  The first column contains the dataset name.
+  The second column contains the directory name that hold the dataset.
+
+One table for each dataset, the name of the table is the dataset name.
+  Each has two columns.
+  First column is the run number.
+  Second column is filename.
+
+
+One table called ProductionJobs
+  Each row refers to a batch job, i.e. a single qsub invocation.
+  Columns are
+     jobKey       INTEGER PRIMARY KEY   This is automatically generated
+     datasetName  Has to be name of a dataset known to table datasets.
+     passIn       Specify which analysis pass the data came from. For mu analyzing real data this is not relevant.
+                  For G4 we put Geant release number here.
+     passOut      Tag by which this analysis pass is known. 
+     startTime    datetime() stamp at start of job
+     endTime      datetime() stamp at end of job
+     directory    the output directory for the batch job
+     jobId        integer assigned by SGE
+     jobType      G4, Response, mu or mta
+     comment      Arbitrary text.
+
+
+One table called ProductionRuns
+  Each row refers to the analysis of a single run. Expected to be a task run on a single core as part of a job.
+     runKey       INTEGER PRIMARY KEY   This is automatically generated
+     runNumber    A runNumber from the datasetName table
+     jobKey       FOREIGN KEY REFERENCES ProductionJobs(jobKey)
+     fileName     TEXT UNIQUE
+     pmiId        Task number assigned by SGE
+     startTime    datetime() stamp at start of task
+     endTime      datetime() stamp at end of task
+     status       TEXT. Initially set to U. If job finishes succesfully set to Y. Otherwise N
+
+  runNumber is unique for given datastName, passTag and jobType. This is enforced in the submission script.
+
+
+One goal is to be able to track from a given dataset to all files associated with it.
+I think this schema does that, although it does not handle the issue of copying a file
+(perhaps to a different computer) and we probably want to include information about
+where/if the file is on the mass storage system.
+
+We also want to be able to track from a given file back to where it belongs in this schema.
+The fileName convention I am using is
+(jobType)_(jobKey)_(runKey)_MC(runNumber)
+and then .mid, .root or .log appended. Since jobKey and runKey are unique we know which rows
+in the tables are appropriate. Also, for real data we use run instead of MC in the file name.
+
+One constraint in the ProductionJobs table is that it is reasonable to check the production
+by analyzing a subset of the runs, verifying results, then finishing the rest of the runs.
+This is the purpose of passIn and passOut. Different job submissions with the same pass are put into
+the same output directory and we only analyze runs that are not already included within
+the pass. We added a column status to the ProductionRuns table. On submitting a job with an existing pass
+we only exclude runs that have been previously analyzed if status='Y'. A significant (as high as 20%)
+of response and mu jobs fail because of odb issues. (We really need to track this down.) Note that with
+the current batch submission scripts the sqlite database is not updated until the end of the job.
